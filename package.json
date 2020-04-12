@@ -2,10 +2,12 @@
   "name": "SkeletonUpdater",
   "version": "0.0.1",
   "private": true,
+  "main": "index.ts",
   "scripts": {
-    "upgrade:project": "export LANG='en_US.UTF-8' && ts-node upgrade.ts"
+    "tsc": "tsc",
+    "upgrade:project": "export LANG='en_US.UTF-8' && ts-node index.ts"
   },
-  "bin": "upgrade.ts",
+  "bin": "index.ts",
   "devDependencies": {
     "@react-native-community/eslint-config": "^1.0.0",
     "@typescript-eslint/eslint-plugin": "^2.27.0",
