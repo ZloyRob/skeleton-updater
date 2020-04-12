@@ -7,7 +7,7 @@
     "upgrade:project": "export LANG='en_US.UTF-8' && ts-node index.ts"
   },
   "bin": {
-    "upgrade:project": "./cli.ts"
+    "upgrade:project": "./index.ts"
   },
   "dependencies": {
     "fs": "^0.0.1-security",
