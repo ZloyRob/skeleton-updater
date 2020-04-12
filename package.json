@@ -2,14 +2,9 @@
   "name": "skeleton-updater",
   "version": "0.0.1",
   "private": false,
-  "main": "index.js",
   "scripts": {
-    "build" : "tsc",
-    "format": "prettier --write \"*.ts\" \"*.js\"",
-    "prepare": "npm run build && npm run format",
     "upgrade:project": "export LANG='en_US.UTF-8' && ts-node index.ts"
   },
-  "bin": "./index.js",
   "dependencies": {
     "fs": "^0.0.1-security",
     "inquirer": "^7.1.0",
