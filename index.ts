@@ -142,6 +142,8 @@ async function applyPatch(tmpPatchFile: string): Promise<boolean> {
       const excludes = [...defaultExcludes, ...filesThatDontExist, ...filesThatFailedToApply].map(
         file => `--exclude=${file}`,
       );
+      console.log('exclude files');
+      console.log(excludes);
       await execa('git', ['apply', tmpPatchFile, ...excludes, '-p1', '--whitespace=fix', '--3way']);
     }
   } catch (error) {
