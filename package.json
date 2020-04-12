@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build" : "tsc",
-    "prepare": "npm run build",
+    "format": "prettier --write \"*.ts\" \"*.js\"",
+    "prepare": "npm run build && npm run format",
     "upgrade:project": "export LANG='en_US.UTF-8' && ts-node index.ts"
   },
   "bin": "./index.js",
