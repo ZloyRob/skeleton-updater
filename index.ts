@@ -158,14 +158,9 @@ async function applyPatch(tmpPatchFile: string): Promise<boolean> {
  */
 async function upgrade(): Promise<void> {
   const tmpPatchFile = 'tmp-upgrade-rn.patch';
-  // if (process.argv.length !== 3) {
-  //   console.error('Needed path to upgrade project (~/rn/watertracker)');
-  //   return;
-  // }
 
-  // const projectPath = process.argv[2];
-
-  console.log(`process.cwd() ${process.cwd()}`);
+  // move from node_modules to root project dir
+  process.chdir('../../');
 
   let {skeleton: lastMergedSkeletonVersion} = require(path.join(process.cwd(), '/package.json'));
 
@@ -182,16 +177,6 @@ async function upgrade(): Promise<void> {
     return;
   }
 
-  console.log(`test ${lastSkeletonVersion}`);
-
-  // const {stdout: lastCommit} = await execa('git', ['rev-list', '--tags', '--max-count=1']);
-  // const {stdout: lastSkeletonVersion} = await execa('git', [
-  //   'describe',
-  //   '--tags',
-  //   `${lastCommit}`,
-  //   '--abbrev=0',
-  // ]);
-
   const patch = await getPatch(lastMergedSkeletonVersion, lastSkeletonVersion);
 
   if (patch === null) {
@@ -205,7 +190,6 @@ async function upgrade(): Promise<void> {
   let patchSuccess;
 
   try {
-    //process.chdir(projectPath);
     fs.writeFileSync(tmpPatchFile, patch);
     patchSuccess = await applyPatch(tmpPatchFile);
   } catch (error) {

@@ -5,9 +5,6 @@
   "scripts": {
     "upgrade:project": "export LANG='en_US.UTF-8' && ts-node index.ts"
   },
-  "bin": {
-    "skeleton-updater": "./test.js"
-  },
   "dependencies": {
     "fs": "^0.0.1-security",
     "inquirer": "^7.1.0",
