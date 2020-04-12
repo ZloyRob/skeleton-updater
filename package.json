@@ -4,10 +4,11 @@
   "private": false,
   "main": "index.ts",
   "scripts": {
-    "tsc": "tsc",
     "upgrade:project": "export LANG='en_US.UTF-8' && ts-node index.ts"
   },
-  "bin": "index.ts",
+  "bin": {
+    "upgrade:project": "export LANG='en_US.UTF-8' && ts-node index.ts"
+  },
   "dependencies": {
     "fs": "^0.0.1-security",
     "inquirer": "^7.1.0",
