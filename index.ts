@@ -31,12 +31,18 @@ async function fetch(
   };
 }
 
-async function getLastestSkeletonVersion(): Promise<string | null> {
+async function getAvailableSkeletonVersion(lastMergedSkeletonVersion: string): Promise<[] | null> {
   try {
     const {data} = await fetch(
-      `https://api.github.com/repos/zloyrob/react-native-skeleton/releases/latest`,
+      `https://api.github.com/repos/zloyrob/react-native-skeleton/releases`,
     );
-    return data.tag_name;
+    const availableVersions = data.reduce((versions: any, release: any) => {
+      if (release.tag_name > lastMergedSkeletonVersion) {
+        versions.push({version: release.tag_name, description: release.body.replace(/(?:\r\n -)/g, ';').replace(' - ', '')});
+      }
+      return versions;
+    }, [])
+    return availableVersions;
   } catch (error) {
     console.error(error.message);
     return null;
@@ -52,8 +58,7 @@ async function getPatch(currentVersion: string, lastVersion: string): Promise<st
     const {data} = await fetch(
       `https://github.com/zloyrob/react-native-skeleton/compare/${currentVersion}...${lastVersion}.diff`,
     );
-    //const {stdout} = await execa('git', ['diff', '--no-prefix', '-u', currentVersion, lastVersion]);
-    patch = data; //stdout.length ? stdout + '\n' : '';
+    patch = data;
   } catch (error) {
     console.error(error.message);
     return null;
@@ -61,43 +66,21 @@ async function getPatch(currentVersion: string, lastVersion: string): Promise<st
 
   let patchWithRenamedProjects = patch;
 
-  if (patchWithRenamedProjects !== '') {
-    const questionsIos = [
-      {
-        type: 'input',
-        name: 'value',
-        validate: (input: string) => input.length > 0,
-        message: 'iOS Projects name (target `watertracker` in Podfile)',
-      },
-    ];
-
-    const iosProjectName: {value: string} = await inquirer.prompt(questionsIos);
-
+  const {androidProjectName, iosProjectName} = await getNativeProjectNames();
+  console.log(`Native project names ios - ${iosProjectName}, android - ${androidProjectName}`)
     // replace ios project name
     patchWithRenamedProjects = patchWithRenamedProjects.replace(
       new RegExp('ReactNativeSkeleton', 'g'),
-      iosProjectName.value,
+      iosProjectName,
     );
-
-    const questionsAndroid = [
-      {
-        type: 'input',
-        name: 'value',
-        validate: (input: string) => input.length > 0,
-        message: 'Android Projects name (`com.wachanga.watertracker`)',
-      },
-    ];
-
-    const androidProjectName: {value: string} = await inquirer.prompt(questionsAndroid);
 
     // replace android project name
     patchWithRenamedProjects = patchWithRenamedProjects
-      .replace(new RegExp('com\\.reactnativeskeleton', 'g'), androidProjectName.value)
+      .replace(new RegExp('com\\.reactnativeskeleton', 'g'), androidProjectName)
       .replace(
         new RegExp('com\\.reactnativeskeleton'.split('.').join('/'), 'g'),
-        androidProjectName.value.split('.').join('/'),
+        androidProjectName.split('.').join('/'),
       );
-  }
 
   return patchWithRenamedProjects;
 }
@@ -155,6 +138,68 @@ async function applyPatch(tmpPatchFile: string): Promise<boolean> {
   return true;
 }
 
+function asyncReadFile(path: string): Promise<string|null> {
+  return new Promise(function (resolve, reject) {
+    fs.readFile(path, 'utf8', (err, result) => {
+      if (err) {
+          reject(null);
+      }
+      resolve(result)
+    })
+  })
+}
+
+async function getNativeProjectNames(): Promise<{androidProjectName: string, iosProjectName: string}> {
+  let androidProjectName = null;
+  const readAndroidResult = await asyncReadFile(path.join(process.cwd(), '/android/app/build.gradle'));
+  if (readAndroidResult) {
+    const regexpResult = readAndroidResult.match(/applicationId "(.*?)"|applicationId '(.*?)'/)
+    console.log(`readFile ${regexpResult}`);
+    if (regexpResult && regexpResult.length) {
+      androidProjectName = regexpResult[1];
+    }
+  }
+
+  if (!androidProjectName) {
+    const questionsAndroid = [
+      {
+        type: 'input',
+        name: 'value',
+        validate: (input: string) => input.length > 0,
+        message: 'Android Projects name (`com.wachanga.watertracker`)',
+      },
+    ];
+
+    const androidProject: {value: string} = await inquirer.prompt(questionsAndroid);
+    androidProjectName = androidProject.value;
+  }
+
+  let iosProjectName = null;
+  const readIosResult = await asyncReadFile(path.join(process.cwd(), '/ios/Podfile'));
+  if (readIosResult) {
+    const regexpResult = readIosResult.match(/target '(.*?)'/);
+    console.log(`readFile ${regexpResult}`);
+    if (regexpResult && regexpResult.length) {
+      iosProjectName = regexpResult[1];
+    }
+  }
+
+  if (!iosProjectName) {
+    const questionsIos = [
+      {
+        type: 'input',
+        name: 'value',
+        validate: (input: string) => input.length > 0,
+        message: 'iOS Projects name (target `watertracker` in Podfile)',
+      },
+    ];
+
+    const iosProject: {value: string} = await inquirer.prompt(questionsIos);
+    iosProjectName = iosProject.value;
+  }
+  return {androidProjectName, iosProjectName};
+}
+
 /**
  * Upgrade application to a new version of React Native Skeleton.
  */
@@ -164,7 +209,11 @@ async function upgrade(): Promise<void> {
   // move from node_modules to root project dir
   process.chdir('../../');
 
-  let {skeleton: lastMergedSkeletonVersion} = require(path.join(process.cwd(), '/package.json'));
+  const packageJsonPath = path.join(process.cwd(), '/package.json');
+
+  let packageJson = require(packageJsonPath);
+
+  let lastMergedSkeletonVersion = packageJson.skeleton;
 
   if (!lastMergedSkeletonVersion) {
     console.log(
@@ -173,13 +222,28 @@ async function upgrade(): Promise<void> {
     lastMergedSkeletonVersion = '0.0.1';
   }
 
-  const lastSkeletonVersion = await getLastestSkeletonVersion();
+  const availableSkeletonVersions = await getAvailableSkeletonVersion(lastMergedSkeletonVersion);
 
-  if (!lastSkeletonVersion) {
+  if (!availableSkeletonVersions || availableSkeletonVersions.length === 0) {
+    console.log('no update available');
     return;
   }
 
-  const patch = await getPatch(lastMergedSkeletonVersion, lastSkeletonVersion);
+  const questionsVersion= [
+    {
+      type: 'list',
+      name: 'value',
+      choices: () => { return availableSkeletonVersions.map((item: any) => {
+         return {name: `${item.version} (${item.description})`, value: item.version, short: item.version}
+        }
+      )},
+      message: 'Select version to update',
+    },
+  ];
+
+  const answerVersion: {value: string} = await inquirer.prompt(questionsVersion);
+  const selectedVersion = answerVersion.value;
+  const patch = await getPatch(lastMergedSkeletonVersion, selectedVersion);
 
   if (patch === null) {
     return;
@@ -194,6 +258,8 @@ async function upgrade(): Promise<void> {
   try {
     fs.writeFileSync(tmpPatchFile, patch);
     patchSuccess = await applyPatch(tmpPatchFile);
+    packageJson.skeleton = selectedVersion;
+    fs.writeFileSync(path.join(process.cwd(), '/package.json'), JSON.stringify(packageJson));
   } catch (error) {
     throw new Error(error.stderr || error);
   } finally {
