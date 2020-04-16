@@ -3,8 +3,7 @@
   "version": "0.0.1",
   "private": false,
   "scripts": {
-    "upgrade:project": "export LANG='en_US.UTF-8' && ts-node index.ts",
-    "postinstall": "yarn tsc index.ts"
+    "upgrade:project": "export LANG='en_US.UTF-8' && ts-node index.ts"
   },
   "bin": "./index.js",
   "dependencies": {
@@ -17,12 +16,18 @@
     "@types/node-fetch": "^2.5.5",
     "@types/inquirer": "^6.5.0"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsc index.ts && git add ."
+    }
+  },
   "devDependencies": {
     "@react-native-community/eslint-config": "^1.0.0",
     "@typescript-eslint/eslint-plugin": "^2.27.0",
     "@typescript-eslint/parser": "^2.27.0",
     "eslint": "^6.5.1",
     "typescript": "^3.8.3",
-    "prettier": "^2.0.4"
+    "prettier": "^2.0.4",
+    "husky": "^3.1.0"
   }
 }
