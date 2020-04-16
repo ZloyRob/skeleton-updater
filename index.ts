@@ -207,8 +207,6 @@ async function getNativeProjectNames(): Promise<{androidProjectName: string, ios
  */
 async function upgrade(): Promise<void> {
 
-  await execa('export', ["LANG='en_US.UTF-8'"], {shell: true}, ); 
-
   const tmpPatchFile = 'tmp-upgrade-rn.patch';
 
   const packageJsonPath = path.join(process.cwd(), '/package.json');

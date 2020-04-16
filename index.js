@@ -298,9 +298,7 @@ function upgrade() {
         var tmpPatchFile, packageJsonPath, packageJson, lastMergedSkeletonVersion, availableSkeletonVersions, questionsVersion, answerVersion, selectedVersion, patch, patchSuccess, error_5;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, execa('export', ["LANG='en_US.UTF-8'"], { shell: true })];
-                case 1:
-                    _a.sent();
+                case 0:
                     tmpPatchFile = 'tmp-upgrade-rn.patch';
                     packageJsonPath = path.join(process.cwd(), '/package.json');
                     packageJson = require(packageJsonPath);
@@ -310,7 +308,7 @@ function upgrade() {
                         lastMergedSkeletonVersion = '0.0.1';
                     }
                     return [4 /*yield*/, getAvailableSkeletonVersion(lastMergedSkeletonVersion)];
-                case 2:
+                case 1:
                     availableSkeletonVersions = _a.sent();
                     if (!availableSkeletonVersions || availableSkeletonVersions.length === 0) {
                         console.log('no update available');
@@ -329,11 +327,11 @@ function upgrade() {
                         },
                     ];
                     return [4 /*yield*/, inquirer.prompt(questionsVersion)];
-                case 3:
+                case 2:
                     answerVersion = _a.sent();
                     selectedVersion = answerVersion.value;
                     return [4 /*yield*/, getPatch(lastMergedSkeletonVersion, selectedVersion)];
-                case 4:
+                case 3:
                     patch = _a.sent();
                     if (patch === null) {
                         return [2 /*return*/];
@@ -342,20 +340,20 @@ function upgrade() {
                         console.log('Diff has no changes to apply');
                         return [2 /*return*/];
                     }
-                    _a.label = 5;
-                case 5:
-                    _a.trys.push([5, 7, 8, 9]);
+                    _a.label = 4;
+                case 4:
+                    _a.trys.push([4, 6, 7, 8]);
                     fs.writeFileSync(tmpPatchFile, patch);
                     return [4 /*yield*/, applyPatch(tmpPatchFile)];
-                case 6:
+                case 5:
                     patchSuccess = _a.sent();
                     packageJson.skeleton = selectedVersion;
                     fs.writeFileSync(path.join(process.cwd(), '/package.json'), JSON.stringify(packageJson));
-                    return [3 /*break*/, 9];
-                case 7:
+                    return [3 /*break*/, 8];
+                case 6:
                     error_5 = _a.sent();
                     throw new Error(error_5.stderr || error_5);
-                case 8:
+                case 7:
                     try {
                         fs.unlinkSync(tmpPatchFile);
                     }
@@ -369,7 +367,7 @@ function upgrade() {
                         console.log('Upgrade finish. Needed resolve some conflicts');
                     }
                     return [7 /*endfinally*/];
-                case 9: return [2 /*return*/];
+                case 8: return [2 /*return*/];
             }
         });
     });
