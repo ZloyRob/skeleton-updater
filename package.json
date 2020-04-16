@@ -4,7 +4,7 @@
   "private": false,
   "scripts": {
     "upgrade:project": "export LANG='en_US.UTF-8' && ts-node index.ts",
-    "postinstall": "yarn run tsc index.ts"
+    "postinstall": "yarn tsc index.ts"
   },
   "bin": "./index.js",
   "dependencies": {
