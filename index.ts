@@ -206,10 +206,10 @@ async function getNativeProjectNames(): Promise<{androidProjectName: string, ios
  * Upgrade application to a new version of React Native Skeleton.
  */
 async function upgrade(): Promise<void> {
-  const tmpPatchFile = 'tmp-upgrade-rn.patch';
 
-  // move from node_modules to root project dir
-  process.chdir('../../');
+  await execa('export', ["LANG='en_US.UTF-8'"], {shell: true}, ); 
+
+  const tmpPatchFile = 'tmp-upgrade-rn.patch';
 
   const packageJsonPath = path.join(process.cwd(), '/package.json');
 

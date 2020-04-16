@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": false,
   "scripts": {
-    "upgrade:project": "export LANG='en_US.UTF-8' && ts-node index.ts"
+    "upgrade:project": "ts-node index.ts"
   },
   "bin": "./index.js",
   "dependencies": {
