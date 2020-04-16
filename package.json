@@ -3,8 +3,10 @@
   "version": "0.0.1",
   "private": false,
   "scripts": {
-    "upgrade:project": "export LANG='en_US.UTF-8' && ts-node index.ts"
+    "upgrade:project": "export LANG='en_US.UTF-8' && ts-node index.ts",
+    "postinstall": "yarn run tsc index.ts"
   },
+  "bin": "./index.js",
   "dependencies": {
     "fs": "^0.0.1-security",
     "inquirer": "^7.1.0",

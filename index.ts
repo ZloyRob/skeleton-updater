@@ -1,7 +1,7 @@
-import path from 'path';
-import fs from 'fs';
-import execa from 'execa';
-import inquirer from 'inquirer';
+import path = require('path');
+import fs = require('fs');
+import execa = require('execa');
+import inquirer = require('inquirer');
 import nodeFetch, {RequestInit as FetchOptions, Response, Request, Headers} from 'node-fetch';
 
 async function unwrapFetchResult(response: Response) {
