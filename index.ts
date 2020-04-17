@@ -53,12 +53,12 @@ async function getAvailableSkeletonVersion(lastMergedSkeletonVersion: string): P
 
 async function getPatch(currentVersion: string, lastVersion: string): Promise<string | null> {
   let patch;
-
+  const repoLink = `https://github.com/zloyrob/react-native-skeleton/compare/${currentVersion}...${lastVersion}`;
   console.info(`Getting diff between v${currentVersion} and v${lastVersion}`);
-
+  console.info(`You can look compare by ${repoLink}`);
   try {
     const {data} = await fetch(
-      `https://github.com/zloyrob/react-native-skeleton/compare/${currentVersion}...${lastVersion}.diff`,
+     repoLink + '.diff',
     );
     patch = data;
   } catch (error) {

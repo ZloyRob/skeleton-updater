@@ -119,15 +119,17 @@ function getAvailableSkeletonVersion(lastMergedSkeletonVersion) {
 }
 function getPatch(currentVersion, lastVersion) {
     return __awaiter(this, void 0, void 0, function () {
-        var patch, data, error_2, patchWithRenamedProjects, _a, androidProjectName, iosProjectName;
+        var patch, repoLink, data, error_2, patchWithRenamedProjects, _a, androidProjectName, iosProjectName;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
+                    repoLink = "https://github.com/zloyrob/react-native-skeleton/compare/" + currentVersion + "..." + lastVersion;
                     console.info("Getting diff between v" + currentVersion + " and v" + lastVersion);
+                    console.info("You can look compare by " + repoLink);
                     _b.label = 1;
                 case 1:
                     _b.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, fetch("https://github.com/zloyrob/react-native-skeleton/compare/" + currentVersion + "..." + lastVersion + ".diff")];
+                    return [4 /*yield*/, fetch(repoLink + '.diff')];
                 case 2:
                     data = (_b.sent()).data;
                     patch = data;
