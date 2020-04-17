@@ -360,8 +360,6 @@ function upgrade() {
                     return [4 /*yield*/, applyPatch(tmpPatchFile)];
                 case 5:
                     patchSuccess = _a.sent();
-                    packageJson.skeleton = selectedVersion;
-                    fs.writeFileSync(path.join(process.cwd(), '/package.json'), JSON.stringify(packageJson));
                     return [3 /*break*/, 8];
                 case 6:
                     error_5 = _a.sent();

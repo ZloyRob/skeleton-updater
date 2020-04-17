@@ -264,8 +264,8 @@ async function upgrade(): Promise<void> {
   try {
     fs.writeFileSync(tmpPatchFile, patch);
     patchSuccess = await applyPatch(tmpPatchFile);
-    packageJson.skeleton = selectedVersion;
-    fs.writeFileSync(path.join(process.cwd(), '/package.json'), JSON.stringify(packageJson));
+    // packageJson.skeleton = selectedVersion;
+    // fs.writeFileSync(path.join(process.cwd(), '/package.json'), JSON.stringify(packageJson));
   } catch (error) {
     throw new Error(error.stderr || error);
   } finally {
