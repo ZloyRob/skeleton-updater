@@ -93,6 +93,7 @@ async function applyPatch(tmpPatchFile: string): Promise<boolean> {
   let filesThatFailedToApply = [];
   try {
     try {
+      await execa('git', ['remote', 'remove', 'skeleton_repo']);
       await execa('git', ['remote', 'add', 'skeleton_repo', 'git@github.com:ZloyRob/react-native-skeleton.git']);
       await execa('git', ['fetch', 'skeleton_repo']);
       const excludes = defaultExcludes.map(file => `--exclude=${file}`);
@@ -106,11 +107,12 @@ async function applyPatch(tmpPatchFile: string): Promise<boolean> {
         tmpPatchFile,
         ...excludes,
         '-p1',
-        '--whitespace=fix',
+        '-C1',
+        '--ignore-whitespace',
         '--3way',
       ]);
     } catch (error) {
-      console.log('first catch');
+      //console.log(error);
       const errorLines = error.stderr.split('\n');
       filesThatDontExist = [
         ...errorLines
@@ -129,9 +131,11 @@ async function applyPatch(tmpPatchFile: string): Promise<boolean> {
       const excludes = [...defaultExcludes, ...filesThatDontExist, ...filesThatFailedToApply].map(
         file => `--exclude=${file}`,
       );
-      console.log('exclude files');
-      console.log(excludes);
-      await execa('git', ['apply', tmpPatchFile, ...excludes, '-p1', '--whitespace=fix', '--3way']);
+      console.log('files that don`t exist');
+      console.log(filesThatDontExist);
+      console.log('files that failed to apply');
+      console.log(filesThatFailedToApply);
+      await execa('git', ['apply', tmpPatchFile, ...excludes, '-p1', '-C1', '--ignore-whitespace', '--3way']);
     }
   } catch (error) {
     console.error(
