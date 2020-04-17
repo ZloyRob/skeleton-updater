@@ -93,6 +93,8 @@ async function applyPatch(tmpPatchFile: string): Promise<boolean> {
   let filesThatFailedToApply = [];
   try {
     try {
+      await execa('git', ['remote', 'add', 'skeleton_repo', 'git@github.com:ZloyRob/react-native-skeleton.git']);
+      await execa('git', ['fetch', 'skeleton_repo']);
       const excludes = defaultExcludes.map(file => `--exclude=${file}`);
       await execa('git', [
         'apply',

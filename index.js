@@ -164,10 +164,16 @@ function applyPatch(tmpPatchFile) {
                     filesThatFailedToApply = [];
                     _a.label = 1;
                 case 1:
-                    _a.trys.push([1, 8, , 9]);
+                    _a.trys.push([1, 10, , 11]);
                     _a.label = 2;
                 case 2:
-                    _a.trys.push([2, 4, 5, 7]);
+                    _a.trys.push([2, 6, 7, 9]);
+                    return [4 /*yield*/, execa('git', ['remote', 'add', 'skeleton_repo', 'git@github.com:ZloyRob/react-native-skeleton.git'])];
+                case 3:
+                    _a.sent();
+                    return [4 /*yield*/, execa('git', ['fetch', 'skeleton_repo'])];
+                case 4:
+                    _a.sent();
                     excludes = defaultExcludes.map(function (file) { return "--exclude=" + file; });
                     return [4 /*yield*/, execa('git', __spreadArrays([
                             'apply',
@@ -182,10 +188,10 @@ function applyPatch(tmpPatchFile) {
                             '--whitespace=fix',
                             '--3way',
                         ]))];
-                case 3:
+                case 5:
                     _a.sent();
-                    return [3 /*break*/, 7];
-                case 4:
+                    return [3 /*break*/, 9];
+                case 6:
                     error_3 = _a.sent();
                     console.log('first catch');
                     errorLines = error_3.stderr.split('\n');
@@ -198,22 +204,22 @@ function applyPatch(tmpPatchFile) {
                         .filter(function (errorLine) { return errorLine.includes('patch does not apply'); })
                         .map(function (errorLine) { return errorLine.replace(/^error: (.*): patch does not apply$/, '$1'); })
                         .filter(Boolean);
-                    return [3 /*break*/, 7];
-                case 5:
+                    return [3 /*break*/, 9];
+                case 7:
                     console.info('Applying diff...');
                     excludes = __spreadArrays(defaultExcludes, filesThatDontExist, filesThatFailedToApply).map(function (file) { return "--exclude=" + file; });
                     console.log('exclude files');
                     console.log(excludes);
                     return [4 /*yield*/, execa('git', __spreadArrays(['apply', tmpPatchFile], excludes, ['-p1', '--whitespace=fix', '--3way']))];
-                case 6:
+                case 8:
                     _a.sent();
                     return [7 /*endfinally*/];
-                case 7: return [3 /*break*/, 9];
-                case 8:
+                case 9: return [3 /*break*/, 11];
+                case 10:
                     error_4 = _a.sent();
                     console.error('Automatically applying diff failed. We did our best to automatically upgrade as many files as possible');
                     return [2 /*return*/, false];
-                case 9: return [2 /*return*/, true];
+                case 11: return [2 /*return*/, true];
             }
         });
     });
