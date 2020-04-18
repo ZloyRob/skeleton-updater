@@ -91,9 +91,8 @@ async function applyPatch(tmpPatchFile: string): Promise<boolean> {
   const defaultExcludes = ['merge.sh', 'upgrade.ts'];
   let filesThatDontExist = [];
   let filesThatFailedToApply = [];
-  try {
+  let applyWithoutConflicts = true;
     try {
-      await execa('git', ['remote', 'remove', 'skeleton_repo']);
       await execa('git', ['remote', 'add', 'skeleton_repo', 'git@github.com:ZloyRob/react-native-skeleton.git']);
       await execa('git', ['fetch', 'skeleton_repo']);
       const excludes = defaultExcludes.map(file => `--exclude=${file}`);
@@ -112,7 +111,6 @@ async function applyPatch(tmpPatchFile: string): Promise<boolean> {
         '--3way',
       ]);
     } catch (error) {
-      //console.log(error);
       const errorLines = error.stderr.split('\n');
       filesThatDontExist = [
         ...errorLines
@@ -126,6 +124,10 @@ async function applyPatch(tmpPatchFile: string): Promise<boolean> {
         .filter((errorLine: string) => errorLine.includes('patch does not apply'))
         .map((errorLine: string) => errorLine.replace(/^error: (.*): patch does not apply$/, '$1'))
         .filter(Boolean);
+      applyWithoutConflicts = false;
+      console.error(
+        'Automatically applying diff failed. We did our best to automatically upgrade as many files as possible',
+      );
     } finally {
       console.info('Applying diff...');
       const excludes = [...defaultExcludes, ...filesThatDontExist, ...filesThatFailedToApply].map(
@@ -135,15 +137,15 @@ async function applyPatch(tmpPatchFile: string): Promise<boolean> {
       console.log(filesThatDontExist);
       console.log('files that failed to apply');
       console.log(filesThatFailedToApply);
-      await execa('git', ['apply', tmpPatchFile, ...excludes, '-p1', '-C1', '--ignore-whitespace', '--3way']);
+      try {
+        await execa('git', ['apply', tmpPatchFile, ...excludes, '-p1', '-C1', '--ignore-whitespace', '--3way']);
+      } catch (error) {
+        //console.log(error);
+      } finally {
+        await execa('git', ['remote', 'remove', 'skeleton_repo']);
+      }
     }
-  } catch (error) {
-    console.error(
-      'Automatically applying diff failed. We did our best to automatically upgrade as many files as possible',
-    );
-    return false;
-  }
-  return true;
+  return applyWithoutConflicts;
 }
 
 function asyncReadFile(path: string): Promise<string|null> {
