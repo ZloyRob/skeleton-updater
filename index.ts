@@ -140,7 +140,7 @@ async function applyPatch(tmpPatchFile: string): Promise<boolean> {
       try {
         await execa('git', ['apply', tmpPatchFile, ...excludes, '-p1', '-C1', '--ignore-whitespace', '--3way']);
       } catch (error) {
-        //console.log(error);
+        // console.log(error);
       } finally {
         await execa('git', ['remote', 'remove', 'skeleton_repo']);
       }

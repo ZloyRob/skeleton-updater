@@ -157,27 +157,22 @@ function getPatch(currentVersion, lastVersion) {
 }
 function applyPatch(tmpPatchFile) {
     return __awaiter(this, void 0, void 0, function () {
-        var defaultExcludes, filesThatDontExist, filesThatFailedToApply, excludes, error_3, errorLines, excludes, error_4;
+        var defaultExcludes, filesThatDontExist, filesThatFailedToApply, applyWithoutConflicts, excludes, error_3, errorLines, excludes, error_4;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     defaultExcludes = ['merge.sh', 'upgrade.ts'];
                     filesThatDontExist = [];
                     filesThatFailedToApply = [];
+                    applyWithoutConflicts = true;
                     _a.label = 1;
                 case 1:
-                    _a.trys.push([1, 11, , 12]);
-                    _a.label = 2;
-                case 2:
-                    _a.trys.push([2, 7, 8, 10]);
-                    return [4 /*yield*/, execa('git', ['remote', 'remove', 'skeleton_repo'])];
-                case 3:
-                    _a.sent();
+                    _a.trys.push([1, 5, 6, 13]);
                     return [4 /*yield*/, execa('git', ['remote', 'add', 'skeleton_repo', 'git@github.com:ZloyRob/react-native-skeleton.git'])];
-                case 4:
+                case 2:
                     _a.sent();
                     return [4 /*yield*/, execa('git', ['fetch', 'skeleton_repo'])];
-                case 5:
+                case 3:
                     _a.sent();
                     excludes = defaultExcludes.map(function (file) { return "--exclude=" + file; });
                     return [4 /*yield*/, execa('git', __spreadArrays([
@@ -194,10 +189,10 @@ function applyPatch(tmpPatchFile) {
                             '--ignore-whitespace',
                             '--3way',
                         ]))];
-                case 6:
+                case 4:
                     _a.sent();
-                    return [3 /*break*/, 10];
-                case 7:
+                    return [3 /*break*/, 13];
+                case 5:
                     error_3 = _a.sent();
                     errorLines = error_3.stderr.split('\n');
                     filesThatDontExist = __spreadArrays(errorLines
@@ -209,24 +204,32 @@ function applyPatch(tmpPatchFile) {
                         .filter(function (errorLine) { return errorLine.includes('patch does not apply'); })
                         .map(function (errorLine) { return errorLine.replace(/^error: (.*): patch does not apply$/, '$1'); })
                         .filter(Boolean);
-                    return [3 /*break*/, 10];
-                case 8:
+                    applyWithoutConflicts = false;
+                    console.error('Automatically applying diff failed. We did our best to automatically upgrade as many files as possible');
+                    return [3 /*break*/, 13];
+                case 6:
                     console.info('Applying diff...');
                     excludes = __spreadArrays(defaultExcludes, filesThatDontExist, filesThatFailedToApply).map(function (file) { return "--exclude=" + file; });
                     console.log('files that don`t exist');
                     console.log(filesThatDontExist);
                     console.log('files that failed to apply');
                     console.log(filesThatFailedToApply);
+                    _a.label = 7;
+                case 7:
+                    _a.trys.push([7, 9, 10, 12]);
                     return [4 /*yield*/, execa('git', __spreadArrays(['apply', tmpPatchFile], excludes, ['-p1', '-C1', '--ignore-whitespace', '--3way']))];
+                case 8:
+                    _a.sent();
+                    return [3 /*break*/, 12];
                 case 9:
+                    error_4 = _a.sent();
+                    return [3 /*break*/, 12];
+                case 10: return [4 /*yield*/, execa('git', ['remote', 'remove', 'skeleton_repo'])];
+                case 11:
                     _a.sent();
                     return [7 /*endfinally*/];
-                case 10: return [3 /*break*/, 12];
-                case 11:
-                    error_4 = _a.sent();
-                    console.error('Automatically applying diff failed. We did our best to automatically upgrade as many files as possible');
-                    return [2 /*return*/, false];
-                case 12: return [2 /*return*/, true];
+                case 12: return [7 /*endfinally*/];
+                case 13: return [2 /*return*/, applyWithoutConflicts];
             }
         });
     });
