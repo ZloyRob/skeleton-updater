@@ -2,7 +2,7 @@
 Script for update project by skeleton's patch
 
 ## Installation
-`yarn add git://github.com/ZloyRob/skeleton-updater#0.0.2 -D`
+`yarn add git://github.com/ZloyRob/skeleton-updater#0.0.3 -D`
 
 ## Usage
 Run or add to package.json stripts:
