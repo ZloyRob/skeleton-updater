@@ -36,14 +36,17 @@ async function fetch(
 async function getAvailableSkeletonVersion(lastMergedSkeletonVersion: string): Promise<[] | null> {
   try {
     const {data} = await fetch(
-      `https://api.github.com/repos/zloyrob/react-native-skeleton/releases`,
+      `https://api.github.com/repos/pridemon/react-native-skeleton/releases`,
     );
     const availableVersions = data.reduce((versions: any, release: any) => {
       if (release.tag_name > lastMergedSkeletonVersion) {
-        versions.push({version: release.tag_name, description: release.body.replace(/(?:\r\n -)/g, ';').replace(' - ', '')});
+        versions.push({
+          version: release.tag_name,
+          description: release.body.replace(/(?:\r\n -)/g, ';').replace(' - ', ''),
+        });
       }
       return versions;
-    }, [])
+    }, []);
     return availableVersions;
   } catch (error) {
     console.error(error.message);
@@ -53,13 +56,11 @@ async function getAvailableSkeletonVersion(lastMergedSkeletonVersion: string): P
 
 async function getPatch(currentVersion: string, lastVersion: string): Promise<string | null> {
   let patch;
-  const repoLink = `https://github.com/zloyrob/react-native-skeleton/compare/${currentVersion}...${lastVersion}`;
+  const repoLink = `https://github.com/pridemon/react-native-skeleton/compare/${currentVersion}...${lastVersion}`;
   console.info(`Getting diff between v${currentVersion} and v${lastVersion}`);
   console.info(`You can look compare by ${repoLink}`);
   try {
-    const {data} = await fetch(
-     repoLink + '.diff',
-    );
+    const {data} = await fetch(repoLink + '.diff');
     patch = data;
   } catch (error) {
     console.error(error.message);
@@ -69,20 +70,20 @@ async function getPatch(currentVersion: string, lastVersion: string): Promise<st
   let patchWithRenamedProjects = patch;
 
   const {androidProjectName, iosProjectName} = await getNativeProjectNames();
-  console.log(`Native project names ios - ${iosProjectName}, android - ${androidProjectName}`)
-    // replace ios project name
-    patchWithRenamedProjects = patchWithRenamedProjects.replace(
-      new RegExp('ReactNativeSkeleton', 'g'),
-      iosProjectName,
-    );
+  console.log(`Native project names ios - ${iosProjectName}, android - ${androidProjectName}`);
+  // replace ios project name
+  patchWithRenamedProjects = patchWithRenamedProjects.replace(
+    new RegExp('ReactNativeSkeleton', 'g'),
+    iosProjectName,
+  );
 
-    // replace android project name
-    patchWithRenamedProjects = patchWithRenamedProjects
-      .replace(new RegExp('com\\.reactnativeskeleton', 'g'), androidProjectName)
-      .replace(
-        new RegExp('com\\.reactnativeskeleton'.split('.').join('/'), 'g'),
-        androidProjectName.split('.').join('/'),
-      );
+  // replace android project name
+  patchWithRenamedProjects = patchWithRenamedProjects
+    .replace(new RegExp('com\\.reactnativeskeleton', 'g'), androidProjectName)
+    .replace(
+      new RegExp('com\\.reactnativeskeleton'.split('.').join('/'), 'g'),
+      androidProjectName.split('.').join('/'),
+    );
 
   return patchWithRenamedProjects;
 }
@@ -92,17 +93,59 @@ async function applyPatch(tmpPatchFile: string): Promise<boolean> {
   let filesThatDontExist = [];
   let filesThatFailedToApply = [];
   let applyWithoutConflicts = true;
+  try {
+    await execa('git', [
+      'remote',
+      'add',
+      'skeleton_repo',
+      'git@github.com:pridemon/react-native-skeleton.git',
+    ]);
+    await execa('git', ['fetch', 'skeleton_repo']);
+    const excludes = defaultExcludes.map((file) => `--exclude=${file}`);
+    await execa('git', [
+      'apply',
+      // According to git documentation, `--binary` flag is turned on by
+      // default. However it's necessary when running `git apply --check` to
+      // actually accept binary files, maybe a bug in git?
+      '--binary',
+      '--check',
+      tmpPatchFile,
+      ...excludes,
+      '-p1',
+      '-C1',
+      '--ignore-whitespace',
+      '--3way',
+    ]);
+  } catch (error) {
+    const errorLines = error.stderr.split('\n');
+    filesThatDontExist = [
+      ...errorLines
+        .filter((errorLine: string) => errorLine.includes('does not exist in index'))
+        .map((errorLine: string) =>
+          errorLine.replace(/^error: (.*): does not exist in index$/, '$1'),
+        ),
+    ].filter(Boolean);
+
+    filesThatFailedToApply = errorLines
+      .filter((errorLine: string) => errorLine.includes('patch does not apply'))
+      .map((errorLine: string) => errorLine.replace(/^error: (.*): patch does not apply$/, '$1'))
+      .filter(Boolean);
+    applyWithoutConflicts = false;
+    console.error(
+      'Automatically applying diff failed. We did our best to automatically upgrade as many files as possible',
+    );
+  } finally {
+    console.info('Applying diff...');
+    const excludes = [...defaultExcludes, ...filesThatDontExist, ...filesThatFailedToApply].map(
+      (file) => `--exclude=${file}`,
+    );
+    console.log('files that don`t exist');
+    console.log(filesThatDontExist);
+    console.log('files that failed to apply');
+    console.log(filesThatFailedToApply);
     try {
-      await execa('git', ['remote', 'add', 'skeleton_repo', 'git@github.com:ZloyRob/react-native-skeleton.git']);
-      await execa('git', ['fetch', 'skeleton_repo']);
-      const excludes = defaultExcludes.map(file => `--exclude=${file}`);
       await execa('git', [
         'apply',
-        // According to git documentation, `--binary` flag is turned on by
-        // default. However it's necessary when running `git apply --check` to
-        // actually accept binary files, maybe a bug in git?
-        '--binary',
-        '--check',
         tmpPatchFile,
         ...excludes,
         '-p1',
@@ -111,59 +154,35 @@ async function applyPatch(tmpPatchFile: string): Promise<boolean> {
         '--3way',
       ]);
     } catch (error) {
-      const errorLines = error.stderr.split('\n');
-      filesThatDontExist = [
-        ...errorLines
-          .filter((errorLine: string) => errorLine.includes('does not exist in index'))
-          .map((errorLine: string) =>
-            errorLine.replace(/^error: (.*): does not exist in index$/, '$1'),
-          ),
-      ].filter(Boolean);
-
-      filesThatFailedToApply = errorLines
-        .filter((errorLine: string) => errorLine.includes('patch does not apply'))
-        .map((errorLine: string) => errorLine.replace(/^error: (.*): patch does not apply$/, '$1'))
-        .filter(Boolean);
-      applyWithoutConflicts = false;
-      console.error(
-        'Automatically applying diff failed. We did our best to automatically upgrade as many files as possible',
-      );
+      // console.log(error);
     } finally {
-      console.info('Applying diff...');
-      const excludes = [...defaultExcludes, ...filesThatDontExist, ...filesThatFailedToApply].map(
-        file => `--exclude=${file}`,
-      );
-      console.log('files that don`t exist');
-      console.log(filesThatDontExist);
-      console.log('files that failed to apply');
-      console.log(filesThatFailedToApply);
-      try {
-        await execa('git', ['apply', tmpPatchFile, ...excludes, '-p1', '-C1', '--ignore-whitespace', '--3way']);
-      } catch (error) {
-        // console.log(error);
-      } finally {
-        await execa('git', ['remote', 'remove', 'skeleton_repo']);
-      }
+      await execa('git', ['remote', 'remove', 'skeleton_repo']);
     }
+  }
   return applyWithoutConflicts;
 }
 
-function asyncReadFile(path: string): Promise<string|null> {
+function asyncReadFile(path: string): Promise<string | null> {
   return new Promise(function (resolve, reject) {
     fs.readFile(path, 'utf8', (err, result) => {
       if (err) {
-          reject(null);
+        reject(null);
       }
-      resolve(result)
-    })
-  })
+      resolve(result);
+    });
+  });
 }
 
-async function getNativeProjectNames(): Promise<{androidProjectName: string, iosProjectName: string}> {
+async function getNativeProjectNames(): Promise<{
+  androidProjectName: string;
+  iosProjectName: string;
+}> {
   let androidProjectName = null;
-  const readAndroidResult = await asyncReadFile(path.join(process.cwd(), '/android/app/build.gradle'));
+  const readAndroidResult = await asyncReadFile(
+    path.join(process.cwd(), '/android/app/build.gradle'),
+  );
   if (readAndroidResult) {
-    const regexpResult = readAndroidResult.match(/applicationId "(.*?)"|applicationId '(.*?)'/)
+    const regexpResult = readAndroidResult.match(/applicationId "(.*?)"|applicationId '(.*?)'/);
     console.log(`readFile ${regexpResult}`);
     if (regexpResult && regexpResult.length) {
       androidProjectName = regexpResult[1];
@@ -214,7 +233,6 @@ async function getNativeProjectNames(): Promise<{androidProjectName: string, ios
  * Upgrade application to a new version of React Native Skeleton.
  */
 async function upgrade(): Promise<void> {
-
   const tmpPatchFile = 'tmp-upgrade-rn.patch';
 
   const packageJsonPath = path.join(process.cwd(), '/package.json');
@@ -237,14 +255,19 @@ async function upgrade(): Promise<void> {
     return;
   }
 
-  const questionsVersion= [
+  const questionsVersion = [
     {
       type: 'list',
       name: 'value',
-      choices: () => { return availableSkeletonVersions.map((item: any) => {
-         return {name: `${item.version} (${item.description})`, value: item.version, short: item.version}
-        }
-      )},
+      choices: () => {
+        return availableSkeletonVersions.map((item: any) => {
+          return {
+            name: `${item.version} (${item.description})`,
+            value: item.version,
+            short: item.version,
+          };
+        });
+      },
       message: 'Select version to update',
     },
   ];

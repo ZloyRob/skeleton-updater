@@ -98,12 +98,15 @@ function getAvailableSkeletonVersion(lastMergedSkeletonVersion) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, fetch("https://api.github.com/repos/zloyrob/react-native-skeleton/releases")];
+                    return [4 /*yield*/, fetch("https://api.github.com/repos/pridemon/react-native-skeleton/releases")];
                 case 1:
                     data = (_a.sent()).data;
                     availableVersions = data.reduce(function (versions, release) {
                         if (release.tag_name > lastMergedSkeletonVersion) {
-                            versions.push({ version: release.tag_name, description: release.body.replace(/(?:\r\n -)/g, ';').replace(' - ', '') });
+                            versions.push({
+                                version: release.tag_name,
+                                description: release.body.replace(/(?:\r\n -)/g, ';').replace(' - ', '')
+                            });
                         }
                         return versions;
                     }, []);
@@ -123,7 +126,7 @@ function getPatch(currentVersion, lastVersion) {
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    repoLink = "https://github.com/zloyrob/react-native-skeleton/compare/" + currentVersion + "..." + lastVersion;
+                    repoLink = "https://github.com/pridemon/react-native-skeleton/compare/" + currentVersion + "..." + lastVersion;
                     console.info("Getting diff between v" + currentVersion + " and v" + lastVersion);
                     console.info("You can look compare by " + repoLink);
                     _b.label = 1;
@@ -168,7 +171,12 @@ function applyPatch(tmpPatchFile) {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 5, 6, 13]);
-                    return [4 /*yield*/, execa('git', ['remote', 'add', 'skeleton_repo', 'git@github.com:ZloyRob/react-native-skeleton.git'])];
+                    return [4 /*yield*/, execa('git', [
+                            'remote',
+                            'add',
+                            'skeleton_repo',
+                            'git@github.com:pridemon/react-native-skeleton.git',
+                        ])];
                 case 2:
                     _a.sent();
                     return [4 /*yield*/, execa('git', ['fetch', 'skeleton_repo'])];
@@ -217,7 +225,15 @@ function applyPatch(tmpPatchFile) {
                     _a.label = 7;
                 case 7:
                     _a.trys.push([7, 9, 10, 12]);
-                    return [4 /*yield*/, execa('git', __spreadArrays(['apply', tmpPatchFile], excludes, ['-p1', '-C1', '--ignore-whitespace', '--3way']))];
+                    return [4 /*yield*/, execa('git', __spreadArrays([
+                            'apply',
+                            tmpPatchFile
+                        ], excludes, [
+                            '-p1',
+                            '-C1',
+                            '--ignore-whitespace',
+                            '--3way',
+                        ]))];
                 case 8:
                     _a.sent();
                     return [3 /*break*/, 12];
@@ -336,7 +352,11 @@ function upgrade() {
                             name: 'value',
                             choices: function () {
                                 return availableSkeletonVersions.map(function (item) {
-                                    return { name: item.version + " (" + item.description + ")", value: item.version, short: item.version };
+                                    return {
+                                        name: item.version + " (" + item.description + ")",
+                                        value: item.version,
+                                        short: item.version
+                                    };
                                 });
                             },
                             message: 'Select version to update'

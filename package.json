@@ -1,6 +1,6 @@
 {
   "name": "skeleton-updater",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "private": false,
   "scripts": {
     "upgrade:project": "ts-node index.ts"
