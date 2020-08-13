@@ -378,16 +378,24 @@ function upgrade() {
                     }
                     _a.label = 4;
                 case 4:
-                    _a.trys.push([4, 6, 7, 8]);
+                    _a.trys.push([4, 8, 9, 10]);
                     fs.writeFileSync(tmpPatchFile, patch);
-                    return [4 /*yield*/, applyPatch(tmpPatchFile)];
+                    packageJson.skeleton = selectedVersion;
+                    fs.writeFileSync(path.join(process.cwd(), '/package.json'), JSON.stringify(packageJson));
+                    return [4 /*yield*/, execa('prettier', ['--write', 'package.json'])];
                 case 5:
-                    patchSuccess = _a.sent();
-                    return [3 /*break*/, 8];
+                    _a.sent();
+                    return [4 /*yield*/, execa('git', ['add', 'package.json'])];
                 case 6:
+                    _a.sent();
+                    return [4 /*yield*/, applyPatch(tmpPatchFile)];
+                case 7:
+                    patchSuccess = _a.sent();
+                    return [3 /*break*/, 10];
+                case 8:
                     error_5 = _a.sent();
                     throw new Error(error_5.stderr || error_5);
-                case 7:
+                case 9:
                     try {
                         fs.unlinkSync(tmpPatchFile);
                     }
@@ -401,7 +409,7 @@ function upgrade() {
                         console.log('Upgrade finish. Needed resolve some conflicts');
                     }
                     return [7 /*endfinally*/];
-                case 8: return [2 /*return*/];
+                case 10: return [2 /*return*/];
             }
         });
     });
