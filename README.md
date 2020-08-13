@@ -2,7 +2,7 @@
 Script for update project by skeleton's patch
 
 ## Installation
-`yarn add git://github.com/pridemon/skeleton-updater#0.0.4 -D`
+`yarn add git://github.com/pridemon/skeleton-updater#0.0.5 -D`
 
 ## Usage
 Run or add to package.json stripts:
